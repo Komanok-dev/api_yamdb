@@ -4,27 +4,6 @@ from django.contrib.auth.models import (
 )
 
 
-class User(AbstractBaseUser):
-    ROLES = ('User', 'Moderator', 'Admin')
-    """username = models.CharField(
-        verbose_name='username',
-        max_length=255,
-        unique=True,
-    )"""
-    email = models.EmailField(
-        verbose_name='email address',
-        max_length=255,
-        unique=True,
-    )
-    role = models.CharField(max_length=30, choices=ROLES)
-    bio = models.TextField(
-        'Биография',
-        blank=True,
-    )
-
-
-
-
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None):
         """
@@ -67,7 +46,20 @@ class UserManager(BaseUserManager):
         return user
 
 
-# hook in the New Manager to our Model
-class User(AbstractBaseUser): # from step 2
-    ...
-    objects = UserManager()
+class User(AbstractBaseUser):
+    ROLES = ('User', 'Moderator', 'Admin')
+    """username = models.CharField(
+        verbose_name='username',
+        max_length=255,
+        unique=True,
+    )"""
+    email = models.EmailField(
+        verbose_name='email address',
+        max_length=255,
+        unique=True,
+    )
+    role = models.CharField(max_length=30, choices=ROLES)
+    bio = models.TextField(
+        'Биография',
+        blank=True,
+    )
