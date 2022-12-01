@@ -11,8 +11,8 @@ from users.permissions import AdminModeratorAuthorOrReadOnly, IsAdminOrReadOnly
 
 from api.filters import TitlesFilter
 from api.serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          TitleGetSerializer, TitlePostSerializer)
+                             GenreSerializer, ReviewSerializer,
+                             TitleGetSerializer, TitlePostSerializer)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
