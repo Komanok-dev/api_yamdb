@@ -23,6 +23,7 @@ for endpoint, viewset, basename in ENDPOINTS:
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
-    path('v1/auth/signup', include('djoser.urls')),
-    path('v1/auth/token', include('djoser.urls.jwt')),
+    path('v1/users/', include('djoser.urls')),
+    # path('v1/auth/signup/', include('djoser.urls')),
+    path('v1/', include('djoser.urls.jwt')),
 ]
