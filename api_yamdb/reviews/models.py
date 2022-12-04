@@ -60,16 +60,17 @@ class Title(models.Model):
 
 
 class Review(models.Model):
+    text = models.TextField()
+    score = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
-    text = models.TextField()
-    score = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
-    )
+
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )

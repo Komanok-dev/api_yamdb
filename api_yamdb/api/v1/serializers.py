@@ -1,7 +1,11 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueTogetherValidator
+from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comment, Genre, Review, Title
-
+from users.models import User
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
@@ -70,3 +74,51 @@ class TitlePostSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+        model = User
+        lookup_field = 'username'
+
+
+class SignupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=User.objects.all(),
+                fields=('email'),
+                message='This email is already taken',
+            )
+        ]
+
+    def validate_username(self, value):
+        if User.objects.get(username=value).exists():
+            raise serializers.ValidationError('This username is already in use')
+        if value.lower() == 'me':
+            raise serializers.ValidationError('You cant use "me" as username')
+        return value
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.CharField(max_length=254)
+    
+    def get_token(request):
+        email = request.data.get('email')
+        user = get_object_or_404(User, email=email)
+        confirmation_code = request.data.get('confirmation_code')
+        if default_token_generator.check_token(user, confirmation_code):
+            return AccessToken.for_user(user)
+        return 'Incorrect confirmation code'

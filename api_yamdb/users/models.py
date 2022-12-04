@@ -16,11 +16,11 @@ class User(AbstractUser):
         choices=USER_ROLES,
         default='user',
     )
-    token = models.CharField(
+    """token = models.CharField(
         blank=True,
         null=True,
         max_length=150,
-    )
+    )"""
     bio = models.TextField(
         'Биография',
         blank=True,

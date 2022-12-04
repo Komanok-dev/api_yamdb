@@ -1,6 +1,6 @@
 -- SQLite
 .mode csv
-.import C:/Dev/api_yamdb/api_yamdb/static/data/review.csv reviews_review
+.import C:/Dev/api_yamdb/api_yamdb/static/data/users.csv users_user
 
 
-select * from reviews_review;
+select * from users_user;
