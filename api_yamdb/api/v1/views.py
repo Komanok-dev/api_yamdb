@@ -5,7 +5,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import mixins, permissions, viewsets, status
 from rest_framework.generics import CreateAPIView
-from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (
@@ -13,6 +12,7 @@ from rest_framework.permissions import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
 from reviews.models import Category, Genre, Review, Title
@@ -103,7 +103,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = (IsAdmin,)
-    # permission_classes = (AllowAny,)
+    permission_classes = (AllowAny,)
     serializer_class = UserSerializer
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
@@ -129,26 +129,20 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# class SignupViewSet(viewsets.ModelViewSet):
-# class SignupViewSet(CreateAPIView):
-class SignupViewSet(APIView):
-    # queryset = User.objects.all()
+class SignupViewSet(CreateAPIView):
     serializer_class = SignupSerializer
-    # permission_classes = (AllowAny,)
+    permission_classes = (AllowAny,)
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
-        username = request.data.get('username')
-        email = request.data.get('email')
-        user = get_object_or_404(User, username=username, email=email)
-        # user = User.objects.get_or_create(username=username, email=email)
+        username = serializer.validated_data.get('username')
+        email = serializer.validated_data.get('email')
+        user, created = User.objects.get_or_create(username=username, email=email)
+        print(created)
         confirmation_code = default_token_generator.make_token(user)
-
-        send_mail(
+        print(confirmation_code)
+        """send_mail(
             subject='Your authentication code',
             message='You will need it to get token\n'
                     f'confirmation_code:\n{confirmation_code}\n'
@@ -156,14 +150,27 @@ class SignupViewSet(APIView):
             from_email='yamdb@yamdb.com',
             recipient_list=[email],
             fail_silently=False,
-        )
+        )"""
 
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class TokenViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+class TokenViewSet(CreateAPIView):
     serializer_class = TokenSerializer
     permission_classes = (AllowAny,)
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        user = get_object_or_404(User, username=username)
+        confirmation_code = request.data.get('confirmation_code')
+        if default_token_generator.check_token(user, confirmation_code):
+            user.is_active = True
+            user.save()
+            token = AccessToken.for_user(user)
+            print(token)
+            return Response(
+                {'token': str(token)}, status=status.HTTP_201_CREATED
+            )
+        return Response({'confirmation_code:': 'Incorrect confirmation code'}, status=status.HTTP_400_BAD_REQUEST)

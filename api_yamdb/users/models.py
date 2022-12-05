@@ -16,11 +16,6 @@ class User(AbstractUser):
         choices=USER_ROLES,
         default='user',
     )
-    """token = models.CharField(
-        blank=True,
-        null=True,
-        max_length=150,
-    )"""
     bio = models.TextField(
         'Биография',
         blank=True,
@@ -28,6 +23,12 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ('username',)
+        """constraints = [
+            models.UniqueConstraint(
+                fields=('email', 'username'),
+                name='unique_email'
+            )
+        ]"""
 
     @property
     def is_admin(self):
