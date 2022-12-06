@@ -1,11 +1,8 @@
-# from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from users.models import User
 
 from .validators import validate_custom_year
-
-# User = get_user_model()
 
 
 class Genre(models.Model):
@@ -103,6 +100,7 @@ class Comment(models.Model):
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.text

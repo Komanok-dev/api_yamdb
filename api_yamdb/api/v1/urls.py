@@ -10,12 +10,12 @@ ENDPOINTS = [
     ('categories', CategoryViewSet, 'categories'),
     (r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, 'reviews'),
     (
-        'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+        r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
         CommentViewSet,
         'comments'
     ),
     ('users', UserViewSet, 'users'),
-    ('users/me', UserViewSet, 'user'),
+    ('users/me', UserViewSet, 'users'),
 ]
 
 router_v1 = DefaultRouter()

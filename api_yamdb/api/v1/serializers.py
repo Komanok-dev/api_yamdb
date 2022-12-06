@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
@@ -74,8 +75,17 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    email = serializers.EmailField(
+        max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
     class Meta:
-        
+
         fields = (
             'username',
             'email',
@@ -89,30 +99,25 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150)
-    email = serializers.EmailField(max_length=254)
 
     class Meta:
         model = User
         fields = ('email', 'username')
-        """validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=('email'),
-                message='This email is already taken',
-            )
-        ]"""
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError('This username is already in use')
+            raise serializers.ValidationError('Username is already in use')
         if value.lower() == 'me':
             raise serializers.ValidationError('You cant use me as username')
         return value
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Email is already in use')
+        return value
 
-class TokenSerializer(UserSerializer):
-    username = serializers.CharField(max_length=150)
+
+class TokenSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.CharField(max_length=254)
 
     class Meta:
