@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
@@ -75,7 +75,6 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        
         fields = (
             'username',
             'email',
@@ -105,7 +104,8 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError('This username is already in use')
+            raise serializers.ValidationError(
+                'This username is already in use')
         if value.lower() == 'me':
             raise serializers.ValidationError('You cant use me as username')
         return value

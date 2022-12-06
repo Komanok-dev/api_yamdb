@@ -103,7 +103,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = (IsAdmin,)
-    permission_classes = (AllowAny,)
     serializer_class = UserSerializer
     filter_backends = (SearchFilter,)
     search_fields = ('username',)
@@ -138,11 +137,12 @@ class SignupViewSet(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email')
-        user, created = User.objects.get_or_create(username=username, email=email)
+        user, created = User.objects.get_or_create(
+            username=username, email=email)
         print(created)
         confirmation_code = default_token_generator.make_token(user)
         print(confirmation_code)
-        """send_mail(
+        send_mail(
             subject='Your authentication code',
             message='You will need it to get token\n'
                     f'confirmation_code:\n{confirmation_code}\n'
@@ -150,9 +150,9 @@ class SignupViewSet(CreateAPIView):
             from_email='yamdb@yamdb.com',
             recipient_list=[email],
             fail_silently=False,
-        )"""
+        )
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenViewSet(CreateAPIView):
@@ -173,4 +173,6 @@ class TokenViewSet(CreateAPIView):
             return Response(
                 {'token': str(token)}, status=status.HTTP_201_CREATED
             )
-        return Response({'confirmation_code:': 'Incorrect confirmation code'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'confirmation_code:': 'Incorrect confirmation code'},
+            status=status.HTTP_400_BAD_REQUEST)
