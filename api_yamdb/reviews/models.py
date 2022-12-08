@@ -6,11 +6,11 @@ from .validators import validate_custom_year
 
 
 class Genre(models.Model):
-    name = models.CharField('Жанр', max_length=200)
+    name = models.CharField('Название жанра', max_length=200)
     slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-name']
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -19,11 +19,11 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField('Категория', max_length=200)
+    name = models.CharField('Название категории', max_length=200)
     slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-name']
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -32,7 +32,8 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField('Название', null=False, max_length=200)
+    name = models.CharField('Название произведения',
+                            null=False, max_length=200)
     year = models.PositiveIntegerField(
         'Год', validators=[validate_custom_year]
     )
@@ -48,7 +49,7 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-name']
         verbose_name = 'Произведние'
         verbose_name_plural = 'Произведения'
 
@@ -67,7 +68,6 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
-
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True
     )
