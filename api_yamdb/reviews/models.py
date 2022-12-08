@@ -5,6 +5,18 @@ from users.models import User
 from .validators import validate_custom_year
 
 
+class CreatedModel(models.Model):
+    """Абстрактная модель. Добавляет дату создания."""
+    pub_date = models.DateTimeField(
+        'Дата создания',
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Genre(models.Model):
     name = models.CharField('Название жанра', max_length=200)
     slug = models.SlugField(max_length=100, unique=True)
@@ -57,7 +69,7 @@ class Title(models.Model):
         return self.name
 
 
-class Review(models.Model):
+class Review(CreatedModel):
     text = models.TextField()
     score = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)]
@@ -67,9 +79,6 @@ class Review(models.Model):
     )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
-    )
-    pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True
     )
 
     class Meta:
@@ -85,7 +94,7 @@ class Review(models.Model):
         return self.title
 
 
-class Comment(models.Model):
+class Comment(CreatedModel):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'
     )
@@ -93,9 +102,6 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
-    pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True
-    )
 
     class Meta:
         verbose_name = 'Комментарий'
