@@ -1,6 +1,7 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import mixins, permissions, viewsets, status
@@ -56,8 +57,8 @@ class CategoryAndGenreViewSet(
 ):
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
     lookup_field = 'slug'
-    search_fields = ['name']
-    filter_backends = [SearchFilter]
+    search_fields = ('name',)
+    filter_backends = (SearchFilter,)
     pagination_class = PageNumberPagination
 
 
@@ -73,7 +74,7 @@ class GenreViewSet(CategoryAndGenreViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [AdminModeratorAuthorOrReadOnly]
+    permission_classes = (AdminModeratorAuthorOrReadOnly,)
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -87,7 +88,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [AdminModeratorAuthorOrReadOnly]
+    permission_classes = (AdminModeratorAuthorOrReadOnly,)
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -109,8 +110,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET', 'PATCH'],
-        permission_classes=[IsAuthenticated],
+        methods=('GET', 'PATCH'),
+        permission_classes=(IsAuthenticated,),
     )
     def me(self, request):
         if request.method == 'GET':
@@ -140,12 +141,13 @@ class SignupViewSet(CreateAPIView):
             username=username, email=email
         )
         confirmation_code = default_token_generator.make_token(user)
+        print(confirmation_code)
         send_mail(
             subject='Your authentication code',
             message='You will need it to get token\n'
                     f'confirmation_code:\n{confirmation_code}\n'
                     f'username: {username}',
-            from_email='yamdb@yamdb.com',
+            from_email=settings.FROM_EMAIL,
             recipient_list=[email],
             fail_silently=False,
         )
@@ -162,13 +164,11 @@ class TokenViewSet(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         user = get_object_or_404(User, username=username)
-        print(user)
         confirmation_code = request.data.get('confirmation_code')
         if default_token_generator.check_token(user, confirmation_code):
             user.is_active = True
             user.save()
             token = AccessToken.for_user(user)
-            print(token)
             return Response(
                 {'token': str(token)}, status=status.HTTP_201_CREATED
             )

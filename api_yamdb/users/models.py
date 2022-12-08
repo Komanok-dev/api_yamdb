@@ -6,10 +6,12 @@ class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
-    USER_ROLES = [
+    USER_ROLES = (
         (ADMIN, 'Admin role'),
         (USER, 'User role'),
-        (MODERATOR, 'Moderator role')]
+        (MODERATOR, 'Moderator role'))
+
+    username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(max_length=254, unique=True)
     role = models.CharField(
         max_length=10,
@@ -23,12 +25,6 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ('username',)
-        """constraints = [
-            models.UniqueConstraint(
-                fields=('email', 'username'),
-                name='unique_email'
-            )
-        ]"""
 
     @property
     def is_admin(self):

@@ -1,16 +1,27 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from users.models import User
-
 from .validators import validate_custom_year
 
 
+class CreatedModel(models.Model):
+    """Абстрактная модель. Добавляет дату создания."""
+    pub_date = models.DateTimeField(
+        'Дата создания',
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Genre(models.Model):
-    name = models.CharField('Жанр', max_length=200)
+    name = models.CharField('Название жанра', max_length=200)
     slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-name',)
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -19,11 +30,11 @@ class Genre(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField('Категория', max_length=200)
+    name = models.CharField('Название категории', max_length=200)
     slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-name',)
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -32,9 +43,11 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField('Название', null=False, max_length=200)
+    name = models.CharField(
+        'Название произведения', null=False, max_length=200
+    )
     year = models.PositiveIntegerField(
-        'Год', validators=[validate_custom_year]
+        'Год', validators=(validate_custom_year,)
     )
     description = models.TextField('Описание')
     genre = models.ManyToManyField(Genre, verbose_name='Жанр')
@@ -44,11 +57,11 @@ class Title(models.Model):
         blank=True,
         null=True,
         related_name='titles',
-        verbose_name='Категория',
+        verbose_name='Произведение',
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ('-name',)
         verbose_name = 'Произведние'
         verbose_name_plural = 'Произведения'
 
@@ -56,20 +69,16 @@ class Title(models.Model):
         return self.name
 
 
-class Review(models.Model):
+class Review(CreatedModel):
     text = models.TextField()
     score = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=(MinValueValidator(1), MaxValueValidator(10))
     )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
-    )
-
-    pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True
     )
 
     class Meta:
@@ -85,7 +94,7 @@ class Review(models.Model):
         return self.title
 
 
-class Comment(models.Model):
+class Comment(CreatedModel):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments'
     )
@@ -93,14 +102,11 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
-    pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True
-    )
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.text

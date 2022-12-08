@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
@@ -109,6 +110,10 @@ class SignupSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Username is already in use')
         if value.lower() == 'me':
             raise serializers.ValidationError('You cant use me as username')
+        if re.search(r'^[\w.@+-]+$', value) is None:
+            raise serializers.ValidationError(
+                ('Username has unallowed symbols'),
+            )
         return value
 
     def validate_email(self, value):
