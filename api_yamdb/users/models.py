@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from reviews.validators import validate_username
 
 
 class User(AbstractUser):
@@ -11,8 +12,17 @@ class User(AbstractUser):
         (USER, 'User role'),
         (MODERATOR, 'Moderator role'))
 
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(max_length=254, unique=True)
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=(validate_username,),
+        null=False
+    )
+    email = models.EmailField(
+        max_length=254,
+        unique=True,
+        # validators=(validate_email,),
+        null=False)
     role = models.CharField(
         max_length=10,
         choices=USER_ROLES,

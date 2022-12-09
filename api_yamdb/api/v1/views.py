@@ -141,7 +141,6 @@ class SignupViewSet(CreateAPIView):
             username=username, email=email
         )
         confirmation_code = default_token_generator.make_token(user)
-        print(confirmation_code)
         send_mail(
             subject='Your authentication code',
             message='You will need it to get token\n'
@@ -169,6 +168,7 @@ class TokenViewSet(CreateAPIView):
             user.is_active = True
             user.save()
             token = AccessToken.for_user(user)
+            print(token)
             return Response(
                 {'token': str(token)}, status=status.HTTP_201_CREATED
             )

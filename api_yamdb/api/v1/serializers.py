@@ -1,7 +1,7 @@
-import re
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+from reviews.validators import validate_username
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -78,11 +78,11 @@ class TitlePostSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=(UniqueValidator(queryset=User.objects.all()),)
     )
     email = serializers.EmailField(
         max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=(UniqueValidator(queryset=User.objects.all()),)
     )
 
     class Meta:
@@ -99,31 +99,34 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field = 'username'
 
 
-class SignupSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('email', 'username')
-
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError('Username is already in use')
-        if value.lower() == 'me':
-            raise serializers.ValidationError('You cant use me as username')
-        if re.search(r'^[\w.@+-]+$', value) is None:
-            raise serializers.ValidationError(
-                ('Username has unallowed symbols'),
-            )
-        return value
+class SignupSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=150,
+        validators=(
+            validate_username,
+            UniqueValidator(queryset=User.objects.all())
+        ),
+        required=True
+    )
+    email = serializers.EmailField(
+        max_length=254,
+        validators=(UniqueValidator(queryset=User.objects.all()),),
+        required=True
+    )
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('Email is already in use')
         return value
 
+    class Meta:
+        model = User
+        fields = ('email', 'username')
 
-class TokenSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.CharField(max_length=254)
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150, required=True)
+    confirmation_code = serializers.CharField(max_length=254, required=True)
 
     class Meta:
         model = User
