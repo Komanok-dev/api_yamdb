@@ -21,7 +21,6 @@ class User(AbstractUser):
     email = models.EmailField(
         max_length=254,
         unique=True,
-        # validators=(validate_email,),
         null=False)
     role = models.CharField(
         max_length=10,
