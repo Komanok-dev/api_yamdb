@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from rest_framework import mixins, permissions, viewsets, status
 from rest_framework.generics import CreateAPIView
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 )
@@ -41,7 +41,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
     filterset_class = TitlesFilter
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -59,7 +59,7 @@ class CategoryAndGenreViewSet(
     lookup_field = 'slug'
     search_fields = ('name',)
     filter_backends = (SearchFilter,)
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
 
 
 class CategoryViewSet(CategoryAndGenreViewSet):
@@ -75,7 +75,7 @@ class GenreViewSet(CategoryAndGenreViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (AdminModeratorAuthorOrReadOnly,)
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -89,7 +89,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (AdminModeratorAuthorOrReadOnly,)
-    pagination_class = PageNumberPagination
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
@@ -147,7 +147,7 @@ class SignupViewSet(CreateAPIView):
                     f'confirmation_code:\n{confirmation_code}\n'
                     f'username: {username}',
             from_email=settings.FROM_EMAIL,
-            recipient_list=[email],
+            recipient_list=(email,),
             fail_silently=False,
         )
 
@@ -168,7 +168,6 @@ class TokenViewSet(CreateAPIView):
             user.is_active = True
             user.save()
             token = AccessToken.for_user(user)
-            print(token)
             return Response(
                 {'token': str(token)}, status=status.HTTP_201_CREATED
             )
